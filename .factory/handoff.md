@@ -1,59 +1,51 @@
-# Bike Service Receipts — polish round 2 handoff
+# Bike Service Receipts — adversarial review 3 handoff
 
-Work order: `bike-service-receipts-polish-2`
+Work order: `bike-service-receipts-review-3`
 
-Role: repair
+Role: reviewer
 
 Live URL: <https://bike-service-receipts.sociobot.in>
 
-Implementation commit: `a5273ac7aac566040cb1689d2a802f522966ce9c`
+Reviewed commit: `871ba4f3c057a177c7a1f1665dc1b5fcf2d548c1`
 
 ## Outcome
 
-All findings in `review-1.md` and `review-2.md` are closed. Unknown deployed URLs now return the complete styled static 404 document before JavaScript, rather than a 404 response containing the landing shell. The repair keeps the botanical field-guide identity, explicit SPA routes, isolated demo, local-first data model, claims contract, and PWA deployment class.
+Review 3 is **FAIL** with nine findings in `.factory/review-3.md`. No product code was changed.
 
-The adjacent offline failure mode was also closed: the service worker caches only successful HTML navigation responses, so a missing URL cannot overwrite its cached app shell.
+The primary blocker is a demo isolation gap: `/?demo=1&license=...` stores the supplied token in the real `sb_license:bike-service-receipts` key, and Reset demo does not remove it. The live privacy and billing pages also contain unlisted, untested claims about the verification destination, checkout operator, receipts/refunds, and revocation.
 
-## Exact verification
+## Verification performed
 
-From fresh clone `/tmp/bike-service-receipts-clean-zivIQr` at the implementation commit:
+From a fresh clone at the reviewed commit:
 
 ```sh
 npm ci
 npm test
 npm run build
-# Then every exact test command in .factory/claims.json, separately
-npm run test:e2e -- --workers=1
+# Each exact test command from .factory/claims.json
+BASE_URL=https://bike-service-receipts.sociobot.in npm run test:e2e -- --workers=1
 ```
 
 Results:
 
 - dependency audit: 0 vulnerabilities
 - unit tests: 8 passed
-- production build: passed; `dist/index.html` present
-- claim tests: all 10 commands passed independently, 2 browser projects each
-- clean-clone browser suite: 30 passed
-- live browser suite: 30 passed with `BASE_URL=https://bike-service-receipts.sociobot.in`
-- dedicated live static-404 test: 2 passed with JavaScript disabled
-- root verifier: one H1, main landmark, all image alt attributes present, no unlabeled buttons, zero console/page errors
-- mobile Lighthouse: Performance 98, Accessibility 100, Best Practices 100, SEO 100; LCP 1.1 s, CLS 0, TBT 170 ms
-- payload: JS 53,818 bytes raw / 17.25 KB gzip; CSS 22,259 bytes raw / 5.70 KB gzip; mobile AVIF 29,229 bytes; no fonts
-- live headers: hashed JS uses `Cache-Control: public, max-age=31536000, immutable`; CSP, Permissions-Policy, Referrer-Policy, nosniff, and frame restrictions present
+- production build: passed; `dist/` created
+- all ten claim commands: passed independently in both browser projects
+- complete live browser suite: 30 passed
+- `verify-url.sh`: no console/page errors; title/lang/main/H1/alt/button basics passed
+- live request log for demo load/save: same-origin only
+- live Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.1 s, TBT 10 ms, CLS 0
+- live link crawl: intentional links returned 200
+- live unknown route: complete static 404 body with HTTP 404
 
-## Deployment and cold checks
+The standalone Axe CLI could not locate the preinstalled Playwright Chromium through Selenium in this container. The repository’s Playwright Axe integration ran against production as part of the 30-test live suite and found no serious or critical violations.
 
-Deployed through `/opt/fleet/lib/deploy-static.sh bike-service-receipts dist` to Azure Static Web Apps. Deployment ID: `b3dedda3-4d17-4c3c-a390-afd0f67712b2`.
+## Files changed
 
-Cold live checks covered `/`, `/?demo=1`, `/demo`, `/privacy`, `/terms`, and `/not-a-real-route`. The unknown route returned HTTP 404 with:
+- `.factory/review-3.md` — complete cold-read, copy, demo, claims, history, structure, accessibility, and missed-leverage review
+- `.factory/handoff.md` — this reviewer handoff
 
-- title `Page not found — Bike Service Receipts`
-- H1 `This page is not in the log`
-- canonical `https://bike-service-receipts.sociobot.in/404`
-- description, Open Graph/Twitter image metadata, and Apple-touch icon
-- shared navigation/footer and `Return to the service log`
+## Next steps
 
-Evidence is in `.factory/evidence/polish-2-live/`, `.factory/evidence/polish-2-live-404-{desktop,mobile}.png`, `.factory/evidence/polish-2-live-{demo-mobile,privacy-desktop}.png`, `.factory/evidence/lighthouse-live-polish-2.json`, and `.factory/polish-2.md`.
-
-## Known gaps and next steps
-
-No acceptance or review gap remains. Field Guide Plus sales remain intentionally closed and are described that way; existing-license restore is available. No infrastructure, billing, or DNS configuration was changed outside the authorized deployment script.
+Address findings in severity order, beginning with demo storage isolation and claims coverage. Add a regression test for a demo URL carrying a `license` parameter. After repair, rerun every check from a clean clone and fresh production browser context.
