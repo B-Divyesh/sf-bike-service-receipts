@@ -102,11 +102,9 @@ test('@claim:backup-restore merges a valid JSON backup without replacing sample 
 
 test('@claim:offline-reload reloads the demo and saves a receipt without a connection', async ({ page, context }) => {
   await openDemo(page);
-  await page.evaluate(async () => {
-    await navigator.serviceWorker.ready;
-    if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }));
-  });
-  await page.reload();
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  if (!await page.evaluate(() => Boolean(navigator.serviceWorker.controller))) await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
