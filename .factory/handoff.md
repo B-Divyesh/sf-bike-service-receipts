@@ -1,51 +1,74 @@
-# Bike Service Receipts — adversarial review 3 handoff
+# Bike Service Receipts — polish round 3 handoff
 
-Work order: `bike-service-receipts-review-3`
-
-Role: reviewer
-
+Work order: `bike-service-receipts-polish-3`
+Role: repair
 Live URL: <https://bike-service-receipts.sociobot.in>
+App repair commits: `591bea4`, `32a2fd1`
+Deployment: `b0874965-19c1-46f4-8d17-98c71e84058b`
 
-Reviewed commit: `871ba4f3c057a177c7a1f1665dc1b5fcf2d548c1`
+## Completed
 
-## Outcome
+- Closed every finding from review rounds 1–3. The detailed finding-by-finding
+  mapping is in `.factory/polish-3.md`.
+- Made demo license returns safe: `?demo=1&license=...` strips the parameter
+  and cannot write real local/session storage or the real IndexedDB namespace.
+- Added the real Sociobot license-destination claim test and removed unsupported
+  billing, merchant, refund, and revocation promises while purchases are closed.
+- Completed the landing flow with a sample receipt, workflow, limitations, and
+  exact free/Plus pricing; updated the price fact, README heading, demo wording,
+  404 copy, sitemap, service-worker version, catalog sentence, and copy audit.
+- Preserved the botanical field-guide visual system and original art.
 
-Review 3 is **FAIL** with nine findings in `.factory/review-3.md`. No product code was changed.
+## Verification
 
-The primary blocker is a demo isolation gap: `/?demo=1&license=...` stores the supplied token in the real `sb_license:bike-service-receipts` key, and Reset demo does not remove it. The live privacy and billing pages also contain unlisted, untested claims about the verification destination, checkout operator, receipts/refunds, and revocation.
-
-## Verification performed
-
-From a fresh clone at the reviewed commit:
+Fresh clone `/tmp/bike-service-receipts-clean-final-13Uo2r` at `32a2fd1`:
 
 ```sh
-npm ci
-npm test
-npm run build
-# Each exact test command from .factory/claims.json
-BASE_URL=https://bike-service-receipts.sociobot.in npm run test:e2e -- --workers=1
+npm ci                         # 0 vulnerabilities
+npm test                       # 8 passed
+npm run build                  # dist/index.html created
+# each exact command in .factory/claims.json
+npx playwright test --workers=2 # 34 passed
 ```
 
-Results:
+All 11 claim commands passed independently in both Chromium desktop and Pixel
+5 projects: demo isolation, service records, reminders, exports, backup
+restore, offline reload, local privacy, Plus, free tier, license destination,
+and accessible layout. The full clean-clone browser suite passed 34/34.
 
-- dependency audit: 0 vulnerabilities
-- unit tests: 8 passed
-- production build: passed; `dist/` created
-- all ten claim commands: passed independently in both browser projects
-- complete live browser suite: 30 passed
-- `verify-url.sh`: no console/page errors; title/lang/main/H1/alt/button basics passed
-- live request log for demo load/save: same-origin only
-- live Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.1 s, TBT 10 ms, CLS 0
-- live link crawl: intentional links returned 200
-- live unknown route: complete static 404 body with HTTP 404
+Production checks after deploy:
 
-The standalone Axe CLI could not locate the preinstalled Playwright Chromium through Selenium in this container. The repository’s Playwright Axe integration ran against production as part of the 30-test live suite and found no serious or critical violations.
+- `BASE_URL=https://bike-service-receipts.sociobot.in npx playwright test --workers=2`: 34/34 passed.
+- `/opt/fleet/lib/verify-url.sh`: no console/page errors; title, language, one
+  H1, main landmark, image alts, and button names passed. Evidence:
+  `.factory/evidence/polish-3-live/verify.json`.
+- Playwright Axe integration found no serious or critical findings across root,
+  demo, privacy, and 404 in both browser projects.
+- Offline test reloaded the controlled demo and saved a receipt after the first
+  visit. Privacy test recorded no cross-origin request while saving demo data.
+  License test intercepted a recorded valid response and asserted the only
+  credential request was the Sociobot verification URL.
+- Live 404: HTTP 404 with the static error title, canonical, H1, and return
+  action before JavaScript. Screenshot:
+  `.factory/evidence/polish-3-live/not-found-desktop.png`.
+- Live headers: root has CSP, Permissions-Policy, Referrer-Policy, nosniff, and
+  frame restriction. `/assets/index-CimKnQkY.js` has one-year immutable cache.
+- Lighthouse mobile run: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; LCP 997 ms, CLS 0, TBT 0. Evidence:
+  `.factory/evidence/lighthouse-live-polish-3.json`.
+- Build budget: JS 56.25 KB raw / 17.75 KB gzip; CSS 25.82 KB raw / 6.27 KB
+  gzip; mobile AVIF hero 29 KB.
 
-## Files changed
+## Evidence
 
-- `.factory/review-3.md` — complete cold-read, copy, demo, claims, history, structure, accessibility, and missed-leverage review
-- `.factory/handoff.md` — this reviewer handoff
+- Landing cold mobile: `.factory/evidence/polish-3-live/welcome-mobile.png`
+- Demo with discarded license parameter: `.factory/evidence/polish-3-live/demo-isolated-mobile.png`
+- Privacy and Terms: `.factory/evidence/polish-3-live/privacy-desktop.png`,
+  `.factory/evidence/polish-3-live/terms-desktop.png`
+- Static 404 body: `.factory/evidence/polish-3-live/unknown.html`
+- Production sitemap: `.factory/evidence/polish-3-live/sitemap.xml`
 
-## Next steps
+## Known gaps
 
-Address findings in severity order, beginning with demo storage isolation and claims coverage. Add a regression test for a demo URL carrying a `license` parameter. After repair, rerun every check from a clean clone and fresh production browser context.
+None. Purchases remain deliberately closed; the UI and legal copy say so while
+existing Sociobot licenses remain restorable.

@@ -49,6 +49,10 @@ To inspect the build:
 npm run preview
 ```
 
+## Deploy
+
+Deploy the contents of `dist/` to a static host with `staticwebapp.config.json` at its root.
+
 ## Data and privacy
 
 Real records use the IndexedDB database `bike-service-receipts`. Demo records use `demo:bike-service-receipts` and never read the real database.
