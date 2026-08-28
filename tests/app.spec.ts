@@ -222,6 +222,8 @@ test('@claim:accessible-layout first screen, demo, legal, and 404 pass accessibi
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Log bike service and costs' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
+  await expect(page.getByText('Private bike maintenance log')).toBeVisible();
+  await expect(page.getByText('Illustration of a commuter bike and the tools recorded in a service receipt.')).toBeVisible();
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /social-preview\.jpg$/);
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/assets/apple-touch-icon.png');
   expect(await seriousAxeViolations(page)).toEqual([]);
@@ -236,4 +238,15 @@ test('@claim:accessible-layout first screen, demo, legal, and 404 pass accessibi
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
   await page.screenshot({ path: testInfo.outputPath('route-accessibility.png'), fullPage: true });
+});
+
+test('README and catalog use the reviewed plain wording', async () => {
+  const readme = await readFile('README.md', 'utf8');
+  const catalog = (await readFile('.factory/catalog-description.txt', 'utf8')).trim();
+  expect(readme).toContain('Log service, costs, odometer readings, and reminders for each bike.');
+  expect(readme).toContain('Set reminders from the last service date or odometer reading.');
+  expect(readme).toContain('License verification uses Sociobot.');
+  expect(readme).not.toMatch(/PWA shell|IndexedDB records|botanical field-guide treatment|factory registers/i);
+  expect(catalog.length).toBeLessThanOrEqual(120);
+  expect(catalog).toMatch(/^Log\b/);
 });
