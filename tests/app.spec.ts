@@ -105,6 +105,8 @@ test('@claim:offline-reload reloads the demo and saves a receipt without a conne
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   if (!await page.evaluate(() => Boolean(navigator.serviceWorker.controller))) await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  // Exercise one controlled online navigation before cutting the connection.
+  await page.reload();
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
