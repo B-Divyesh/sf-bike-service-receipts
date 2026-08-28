@@ -18,7 +18,7 @@ Live product: <https://bike-service-receipts.sociobot.in>
 
 Records stay in this browser unless you export them. The app has no analytics, advertising trackers, third-party scripts, or hosted fonts.
 
-The free version includes one bike, text receipts, default reminders, and every export. Field Guide Plus costs ₹499 once. It adds multiple bikes, compressed photos, and custom reminder intervals. Checkout and license verification use Sociobot.
+The free version includes one bike, text receipts, default reminders, and every export. Field Guide Plus will cost ₹499 once sales open. It adds multiple bikes, compressed photos, and custom reminders. License verification uses Sociobot.
 
 Reminders are records, not mechanical diagnosis or safety certification.
 

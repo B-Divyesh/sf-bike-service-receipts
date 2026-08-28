@@ -155,7 +155,8 @@ test('@claim:plus-entitlements enables multiple bikes, photos, and custom remind
   await page.getByRole('button', { name: 'Create bike profile' }).click();
   await page.getByRole('button', { name: 'Data & Plus', exact: true }).click();
   await expect(page.getByText('One-time purchase · ₹499')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Buy Plus once' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/bike-service-receipts/checkout');
+  await expect(page.getByRole('button', { name: 'Purchases not open' })).toBeDisabled();
+  await expect(page.getByText('Existing licenses can still be restored.')).toBeVisible();
   await page.evaluate(() => { window.fetch = async () => new Response('{"valid":true,"reason":"ok","expires_at":null}', { status: 200, headers: { 'Content-Type': 'application/json' } }); });
   await page.getByRole('button', { name: 'Have a license?' }).click();
   await page.getByLabel('License token').fill('test-license-token');
@@ -200,13 +201,18 @@ test('rejects an incomplete import before writing and recovers a previously dama
 
 test('uses real route titles, shared navigation, focus restoration, and a styled 404', async ({ page }) => {
   await openDemo(page);
+  await expect(page).toHaveTitle('Demo — Bike Service Receipts');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://bike-service-receipts.sociobot.in/demo');
   await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
   await expect(page).toHaveTitle('Privacy — Bike Service Receipts');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /stores local records/);
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  await expect(page.locator('#route-status')).toContainText('Privacy, kept local loaded');
   await expect(page.getByRole('link', { name: 'Built by Param Factory (external site)' })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Sample bike service log' })).toBeFocused();
-  await page.goto('/not-a-real-route');
+  const response = await page.goto('/not-a-real-route');
+  if (process.env.BASE_URL) expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle('Page not found — Bike Service Receipts');
   await expect(page.getByRole('heading', { name: 'This page is not in the log' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Return to the service log' })).toBeVisible();
@@ -216,6 +222,8 @@ test('@claim:accessible-layout first screen, demo, legal, and 404 pass accessibi
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Log bike service and costs' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /social-preview\.jpg$/);
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/assets/apple-touch-icon.png');
   expect(await seriousAxeViolations(page)).toEqual([]);
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
   expect(await seriousAxeViolations(page)).toEqual([]);
