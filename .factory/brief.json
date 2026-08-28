@@ -1,0 +1,12 @@
+{
+  "slug": "bike-service-receipts",
+  "title": "Bike Service Receipts",
+  "territory": "utilities",
+  "user": "Everyday cyclists maintaining one or more bikes who need a simple, evidence-backed record of what was done, what it cost, and what is next.",
+  "smallest_useful_product": "Offline-first PWA with bike profiles, one-tap service receipts (actions, photo, cost, odometer), rule-based reminders, and CSV/PDF export.",
+  "success_measure": "After 60 days, 70% of pilot riders have logged three or more maintenance events and can answer the last-service date for every tracked component.",
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "constraints": "Local storage/export first; reminders are informational, not safety certification; no medical or repair advice; users control all location/ride imports.",
+  "state": "RESEARCHED"
+}
