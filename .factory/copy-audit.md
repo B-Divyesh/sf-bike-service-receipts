@@ -20,6 +20,12 @@ Checked 2026-08-28. Counts treat hyphenated terms as one word. No sentence excee
 | Read how your data is handled in privacy. | 8 | Pass |
 | The product illustration was generated with AI. | 7 | Pass |
 
+## Catalog
+
+| Copy | Words | Result |
+| --- | ---: | --- |
+| Log bike service, costs, odometer readings, and reminders offline on your own device. | 13 | Pass; verb-first and 85 characters |
+
 ## Terminology
 
 | Concept | Term used |
