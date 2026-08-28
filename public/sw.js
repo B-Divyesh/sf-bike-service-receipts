@@ -16,7 +16,16 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(SHELL).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    const cache = await caches.open(SHELL);
+    await cache.addAll(APP_SHELL);
+    const indexResponse = await fetch('/index.html');
+    const markup = await indexResponse.clone().text();
+    await cache.put('/index.html', indexResponse);
+    const builtAssets = [...markup.matchAll(/(?:src|href)="(\/assets\/[^"?#]+)"/g)].map((match) => match[1]);
+    await cache.addAll([...new Set(builtAssets)]);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {

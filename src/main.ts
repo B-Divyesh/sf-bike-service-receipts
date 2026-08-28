@@ -113,6 +113,7 @@ function navButton(view: ViewName, glyph: 'receipt' | 'archive' | 'clock' | 'dow
 }
 
 function render(): void {
+  document.title = 'Bike Service Receipts — private maintenance log';
   if (!bikes.length) {
     renderWelcome();
     return;
@@ -142,7 +143,7 @@ function renderWelcome(): void {
         <picture><source type="image/avif" srcset="/assets/field-guide-hero-768.avif 768w, /assets/field-guide-hero-1536.avif 1536w" sizes="(max-width: 900px) calc(100vw - 36px), 55vw"><source type="image/webp" srcset="/assets/field-guide-hero-768.webp 768w, /assets/field-guide-hero-1536.webp 1536w" sizes="(max-width: 900px) calc(100vw - 36px), 55vw"><img src="/assets/field-guide-hero-1536.webp" width="1536" height="1024" alt="An illustrated green city bicycle arranged on specimen paper with fern leaves, chain brush, oil bottle, blank receipt slip, and pencil." fetchpriority="high" decoding="async"></picture>
         <figcaption>Plate I · A service history starts with one observation.</figcaption>
       </figure>
-      <p class="welcome-legal">By continuing you accept the <a href="/terms" data-page>terms</a>. See how your local data is handled in <a href="/privacy" data-page>privacy</a>.</p>
+      <p class="welcome-legal">By continuing you accept the <a href="/terms" data-page>terms</a>. See how your local data is handled in <a href="/privacy" data-page>privacy</a>. The field-guide illustration was generated with AI for this product.</p>
     </main>`;
   document.querySelector<HTMLFormElement>('#first-bike-form')!.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -236,7 +237,7 @@ function receiptItem(receipt: Receipt): string {
   return `<li class="receipt-item" data-receipt="${receipt.id}">
     <div class="receipt-date"><b>${dateLabel(receipt.servicedAt)}</b><span>${receipt.odometerKm === null ? 'No odometer' : `${receipt.odometerKm.toLocaleString()} km`}</span></div>
     <div class="receipt-action"><span class="component-mark">${e(receipt.component.slice(0, 2).toUpperCase())}</span><div><h3>${e(receipt.component)} · ${e(receipt.action)}</h3><p>${receipt.provider ? e(receipt.provider) : 'Self-recorded'} · ${moneyLabel(receipt.cost, receipt.currency)}</p>${receipt.notes ? `<p class="receipt-notes">${e(receipt.notes)}</p>` : ''}</div></div>
-    ${receipt.photo ? `<img class="receipt-photo" src="${receipt.photo}" alt="Photo evidence attached to ${e(receipt.component)} service on ${e(dateLabel(receipt.servicedAt))}." width="112" height="84" loading="lazy">` : ''}
+    ${receipt.photo ? `<img class="receipt-photo" src="${e(receipt.photo)}" alt="Photo evidence attached to ${e(receipt.component)} service on ${e(dateLabel(receipt.servicedAt))}." width="112" height="84" loading="lazy">` : ''}
     <div class="receipt-actions"><button type="button" class="icon-button" data-pdf="${receipt.id}" aria-label="Export this receipt as PDF">${icon('download')}</button><button type="button" class="icon-button danger-icon" data-delete-receipt="${receipt.id}" aria-label="Delete ${e(receipt.component)} receipt from ${e(dateLabel(receipt.servicedAt))}">×</button></div>
   </li>`;
 }
@@ -491,7 +492,8 @@ function acceptReturnedLicense(): void {
 
 function registerPwa(): void {
   if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.addEventListener('message', (event) => { if (event.data?.type === 'APP_UPDATED' && sessionStorage.getItem('sw-version') !== event.data.version) { sessionStorage.setItem('sw-version', event.data.version); const toast = document.querySelector<HTMLElement>('#update-toast'); if (toast) toast.hidden = false; } });
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('message', (event) => { if (hadController && event.data?.type === 'APP_UPDATED' && sessionStorage.getItem('sw-version') !== event.data.version) { sessionStorage.setItem('sw-version', event.data.version); const toast = document.querySelector<HTMLElement>('#update-toast'); if (toast) toast.hidden = false; } });
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => undefined));
 }
 
@@ -503,7 +505,7 @@ window.addEventListener('popstate', () => { if (location.pathname === '/privacy'
 async function start(): Promise<void> {
   acceptReturnedLicense(); registerPwa();
   if (location.pathname === '/privacy' || location.pathname === '/terms') { renderLegal(location.pathname); return; }
-  try { await loadState(); render(); void verifyLicense().then((wasValid) => { if (wasValid !== licensed) { licensed = wasValid; render(); } }); }
+  try { await loadState(); render(); const licenseBeforeCheck = licensed; void verifyLicense().then((wasValid) => { if (wasValid !== licenseBeforeCheck) render(); }); }
   catch (error) { app.innerHTML = `<main id="main" class="fatal"><p class="eyebrow">The field log could not open</p><h1>Your records were not changed.</h1><p>${e(error instanceof Error ? error.message : 'Local storage is unavailable in this browser.')}</p><button class="primary" onclick="location.reload()">Try again</button><p>Private browsing or blocked site storage can prevent an offline log from opening.</p></main>`; }
 }
 

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bike-service-receipts.sociobot.in/sitemap.xml
