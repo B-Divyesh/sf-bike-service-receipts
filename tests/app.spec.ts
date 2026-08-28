@@ -114,6 +114,12 @@ test('@claim:offline-reload reloads the demo and saves a receipt without a conne
   await page.locator('#action').selectOption('Inspected');
   await page.getByRole('button', { name: 'Save receipt' }).click();
   await expect(page.locator('#field-note')).toContainText('receipt saved locally');
+  await context.setOffline(false);
+  const notFound = await page.goto('/not-a-real-route');
+  if (process.env.BASE_URL) expect(notFound?.status()).toBe(404);
+  await context.setOffline(true);
+  await page.goto('/demo');
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
 });
 
 test('@claim:local-privacy keeps the demo local and makes no cross-origin requests', async ({ page }) => {
@@ -216,6 +222,41 @@ test('uses real route titles, shared navigation, focus restoration, and a styled
   await expect(page).toHaveTitle('Page not found — Bike Service Receipts');
   await expect(page.getByRole('heading', { name: 'This page is not in the log' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Return to the service log' })).toBeVisible();
+});
+
+test('@deployment:static-404 serves the complete missing-page document before JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: process.env.BASE_URL ?? 'http://127.0.0.1:4173',
+  });
+  const page = await context.newPage();
+  const target = process.env.BASE_URL ? '/not-a-real-route' : '/404.html';
+  const response = await page.goto(target);
+  expect(response).not.toBeNull();
+  if (process.env.BASE_URL) expect(response?.status()).toBe(404);
+  await expect(page).toHaveTitle('Page not found — Bike Service Receipts');
+  await expect(page.locator('h1')).toHaveText('This page is not in the log');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://bike-service-receipts.sociobot.in/404');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'This Bike Service Receipts page does not exist. Return to the service log.');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Page not found — Bike Service Receipts');
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/assets/apple-touch-icon.png');
+  await expect(page.getByRole('link', { name: 'Return to the service log' })).toHaveAttribute('href', '/');
+  await context.close();
+});
+
+test('static host sends only known app routes to the SPA shell', async () => {
+  const config = JSON.parse(await readFile('public/staticwebapp.config.json', 'utf8')) as {
+    routes: Array<{ route: string; rewrite?: string; statusCode?: number }>;
+    navigationFallback?: unknown;
+    responseOverrides: Record<string, { rewrite: string }>;
+  };
+  expect(config.navigationFallback).toBeUndefined();
+  for (const route of ['/', '/demo', '/privacy', '/terms']) {
+    expect(config.routes).toContainEqual(expect.objectContaining({ route, rewrite: '/index.html' }));
+  }
+  expect(config.routes).toContainEqual({ route: '/*', statusCode: 404 });
+  expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
 });
 
 test('@claim:accessible-layout first screen, demo, legal, and 404 pass accessibility and mobile layout checks', async ({ page }, testInfo) => {

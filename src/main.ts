@@ -9,7 +9,7 @@ const LICENSE_KEY = `sb_license:${SLUG}`;
 const VERDICT_KEY = `sb_license_verdict:${SLUG}`;
 const VERIFY_URL = `https://api.sociobot.in/api/v1/products/${SLUG}/verify`;
 const SITE_URL = 'https://bike-service-receipts.sociobot.in';
-const BUILD_ID = 'polish-1';
+const BUILD_ID = 'polish-2';
 const demoMode = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
 const SELECTED_BIKE_KEY = demoMode ? 'demo:selectedBikeId' : 'selectedBikeId';
 const app = document.querySelector<HTMLDivElement>('#app')!;

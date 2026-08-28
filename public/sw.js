@@ -1,4 +1,4 @@
-const VERSION = 'field-log-polish-1';
+const VERSION = 'field-log-polish-2';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const APP_SHELL = [
@@ -53,8 +53,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       try {
         const response = await fetch(request);
-        const cache = await caches.open(RUNTIME);
-        cache.put('/index.html', response.clone());
+        if (response.ok && response.headers.get('content-type')?.includes('text/html')) {
+          const cache = await caches.open(RUNTIME);
+          cache.put('/index.html', response.clone());
+        }
         return response;
       } catch {
         return (await caches.match('/index.html')) || (await caches.match('/offline.html'));

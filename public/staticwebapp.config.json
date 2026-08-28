@@ -15,10 +15,6 @@
     { "route": "/404.html", "headers": { "Cache-Control": "public, max-age=3600" } },
     { "route": "/*", "statusCode": 404 }
   ],
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,js,png,jpg,avif,svg,webp,ico,json,txt,xml,webmanifest,wasm}"]
-  },
   "responseOverrides": {
     "404": { "rewrite": "/404.html" }
   },
