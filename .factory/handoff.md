@@ -1,45 +1,19 @@
-# Bike Service Receipts — polish round 1 handoff
+# Bike Service Receipts — review 2 handoff
 
-Work order: `bike-service-receipts-polish-1`
-
-Artifact: static offline-first PWA
-
+Work order: `bike-service-receipts-review-2`
+Role: reviewer
 Live URL: <https://bike-service-receipts.sociobot.in>
 
-## Status
+## What was done
 
-Complete and deployed. Every finding in `review-1.md` is mapped to its repair
-and evidence in [polish-1.md](polish-1.md). No review finding remains open in
-the repository or deployed artifact.
+- Performed a fresh first-read review at 390 px and desktop without scrolling.
+- Rechecked the one-click demo, its reset action, separate IndexedDB namespace, real-data separation, and request log.
+- Read the brief, visual thesis, claim manifest, all earlier review/polish/handoff material, current source, and README.
+- Ran `npm ci`, `npm test`, `npm run build`, every command in `.factory/claims.json`, and the complete browser suite from a fresh local clone. The final suite result was 26 passed.
+- Crawled the live primary routes and links; checked titles, focus after client navigation and Back, metadata after render, security headers, sitemap/robots, and the unknown-route response with and without JavaScript.
+- Wrote `.factory/review-2.md`. No product code was changed.
 
-## What changed
-
-- Rewrote the first screen around the job: log bike service, costs, and
-  reminders. Added the one-click sample action and reviewed plain wording.
-- Added an isolated `demo:bike-service-receipts` database, separate demo
-  selection state, four realistic receipts, three reminders, reset, and a
-  route-persistent demo banner. Leaving demo deletes its data and returns to
-  untouched real records.
-- Added strict validation for every imported field before any transaction.
-  A recovery screen can export the raw damaged database and remove invalid
-  records while retaining valid ones.
-- Added the complete claim contract in `claims.json`. Each listed claim has
-  one observable `@claim:` browser test that begins from sample data.
-- Added route-specific titles and metadata, canonical and social metadata,
-  a 1200×630 social image, Apple touch icon, shared navigation/footer,
-  route announcements, focus restoration, and styled application and host
-  404 responses.
-- Added long-lived immutable hashed-asset caching and CSP,
-  Permissions-Policy, Referrer-Policy, nosniff, and frame restrictions.
-- Replaced the unavailable Sociobot checkout with an honest disabled
-  “Purchases not open” state. Existing Sociobot licenses can still be pasted
-  and verified; entitlement tests use a recorded response and spend nothing.
-- Updated README, demo documentation, copy audit, catalog description,
-  design provenance, privacy, and terms.
-
-## Verification
-
-Clean checkout verification uses:
+## Verification commands
 
 ```sh
 npm ci
@@ -48,42 +22,8 @@ npm run build
 npm run test:e2e -- --workers=1
 ```
 
-Each command in `.factory/claims.json` was also run separately from the clean
-checkout. Results:
+Each individual `npm run test:e2e -- --grep @claim:<id> --workers=1` command for all ten IDs in `.factory/claims.json` also passed from the clean clone.
 
-- Unit tests: 8 passed.
-- Browser/accessibility/integration tests: 26 passed across desktop Chromium
-  and Pixel 5 projects.
-- All 10 claim commands passed independently.
-- Build: `dist/index.html` exists; initial JS is 53.82 KB raw / 17.25 KB gzip;
-  CSS is 22.26 KB raw / 5.70 KB gzip.
-- Live URL verifier: zero console or page errors; `lang=en`; one H1; one main;
-  no missing alt text or unnamed buttons.
-- Final live mobile Lighthouse: Performance 99, Accessibility 100,
-  Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 110 ms, CLS 0.
-- Live routes: `/`, `/demo`, `/privacy`, and `/terms` return 200. An unknown
-  path returns the designed page with HTTP 404.
-- The deployed JS SHA-256 matches the local build:
-  `377e61d98d9d9b274abaaf92c0f1a009ccb753cee60517743f358c6102d5c585`.
+## Known gap
 
-Evidence is under `.factory/evidence/`, including the mobile recovery screen,
-live route screenshots, URL verifier JSON, and final Lighthouse JSON.
-
-## Deployment
-
-The production artifact was deployed with:
-
-```sh
-/opt/fleet/lib/deploy-static.sh bike-service-receipts dist
-```
-
-Deployment ID: `54c89277-a5fb-4e81-88d0-9bbda007f16b`.
-
-## Known limitations
-
-There are no unresolved acceptance findings. The configured live Sociobot
-checkout endpoint currently reports that the factory product is unavailable,
-so new purchases are not offered. This is represented truthfully in the UI;
-restore and verification for existing licenses remain available. Enabling new
-sales requires product registration outside this repository and is not an
-application defect or an authorized infrastructure change for this work order.
+The review verdict is **FAIL** because an unknown deployed URL returns status 404 with `index.html` as its body. With JavaScript disabled it shows root title/metadata and no H1, instead of the designed static 404. This reopens prior finding F-1-6 as F-2-1. See `.factory/review-2.md` for the exact evidence and required deployment/configuration fix.
