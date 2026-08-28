@@ -1,4 +1,21 @@
-# Bike Service Receipts — build handoff
+# Bike Service Receipts — handoff
+
+## Verifier outcome (2026-08-28): **FAIL**
+
+Independent verification of candidate `151a9b707004a6e2229200f9c0c3700d42ffabac`
+and <https://bike-service-receipts.sociobot.in> found a high-severity JSON
+import persistence defect: an incomplete but validator-accepted backup is
+written to IndexedDB and causes the app to fail on every later reload. The
+live mobile Lighthouse performance score was also 86, below the required 90.
+The complete evidence, exact reproduction, passing checks, deployment identity
+hashes, and retest criteria are in [`.factory/verification.md`](verification.md).
+
+Do not release this candidate until the verification report's blocking defect
+is corrected and independently retested. The builder handoff below is retained
+as historical implementation context; its PASS-like verification claims are
+superseded by this verifier result.
+
+---
 
 Work order: `bike-service-receipts-build-1`
 
