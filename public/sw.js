@@ -1,10 +1,11 @@
-const VERSION = 'field-log-v1';
+const VERSION = 'field-log-polish-1';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const APP_SHELL = [
   '/',
   '/index.html',
   '/offline.html',
+  '/error-page.css',
   '/manifest.webmanifest',
   '/assets/icon.svg',
   '/assets/icon-192.png',

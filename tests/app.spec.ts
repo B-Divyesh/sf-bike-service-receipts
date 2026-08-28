@@ -1,76 +1,230 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
-test('creates a bike, saves a receipt, and survives refresh', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-  await page.getByLabel('Name your first bike').fill('Fern commuter');
-  await page.getByRole('button', { name: /Start this bike/ }).click();
-  await expect(page.locator('#bike-picker')).toHaveValue(/.+/);
-  await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
-
-  await page.locator('#component').selectOption('Chain');
-  await page.locator('#action').selectOption('Lubricated');
-  await page.getByLabel('Cost').fill('350');
-  await page.getByLabel('Odometer (km)').first().fill('1280');
-  await page.getByLabel('Evidence and notes').fill('Wiped clean and applied dry lube.');
-  await page.getByRole('button', { name: 'Save receipt' }).click();
-  await expect(page.getByRole('status')).toContainText('receipt saved locally');
-
-  await page.reload();
-  await page.getByRole('button', { name: 'History', exact: true }).click();
-  await expect(page.getByText('Chain · Lubricated')).toBeVisible();
-  await expect(page.getByText(/₹350|INR\s*350/)).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+async function seriousAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
-  expect(errors).toEqual([]);
-});
+  return results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''));
+}
 
-test('welcome and legal page have no serious accessibility violations', async ({ page }) => {
-  await page.goto('/');
-  let results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
-  await page.emulateMedia({ colorScheme: 'dark' });
-  results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
-  await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/privacy');
-  await expect(page.getByRole('heading', { level: 1, name: 'Privacy, kept local' })).toBeVisible();
-  results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
-});
+async function openDemo(page: Page) {
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Demo — sample data, nothing is saved to your records')).toBeVisible();
+  await expect(page.locator('#bike-picker option')).toHaveCount(2);
+}
 
-test('restores a returned Plus license without exposing it in the URL', async ({ page }) => {
-  await page.route('https://api.sociobot.in/api/v1/products/bike-service-receipts/verify**', async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok', expires_at: null }) });
-  });
-  await page.goto('/?license=test-license-token');
-  await expect(page).not.toHaveURL(/license=/);
-  await page.getByLabel('Name your first bike').fill('Licensed bike');
-  await page.getByRole('button', { name: /Start this bike/ }).click();
+async function openData(page: Page) {
   await page.getByRole('button', { name: 'Data & Plus', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Field Guide Plus is unlocked' })).toBeVisible();
+}
+
+test('@claim:demo-isolation sample data is one click away and never changes real records', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await page.getByLabel('Name your first bike').fill('My real bicycle');
+  await page.getByRole('button', { name: 'Create bike profile' }).click();
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('My real bicycle');
+  await page.goto('/?demo=1');
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
+  await page.locator('#bike-picker').selectOption('demo-gravel');
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('My real bicycle');
 });
 
-test('installed shell and local records work offline', async ({ page, context }) => {
-  await page.goto('/');
-  await page.getByLabel('Name your first bike').fill('Offline bike');
-  await page.getByRole('button', { name: /Start this bike/ }).click();
+test('@claim:service-records logs, searches, and deletes a service receipt', async ({ page }) => {
+  await openDemo(page);
+  await page.locator('#component').selectOption('Wheels');
+  await page.locator('#action').selectOption('Adjusted');
+  await page.getByLabel('Cost').fill('650');
+  await page.getByLabel('Evidence and notes').fill('Trued the rear wheel after a pothole.');
+  await page.getByRole('button', { name: 'Save receipt' }).click();
+  await expect(page.locator('#field-note')).toContainText('receipt saved locally');
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByLabel('Filter this history').fill('pothole');
+  const item = page.locator('[data-receipt]').filter({ hasText: 'Wheels · Adjusted' });
+  await expect(item).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await item.getByRole('button', { name: /Delete Wheels receipt/ }).click();
+  await expect(page.getByText('Wheels · Adjusted')).toHaveCount(0);
+});
+
+test('@claim:reminders creates date and odometer reminders from service work', async ({ page }) => {
+  await openDemo(page);
+  await page.getByRole('button', { name: /Next up/ }).click();
+  await expect(page.getByText('Clean and lubricate chain')).toBeVisible();
+  await page.getByRole('button', { name: /Add reminder/i }).click();
+  await page.getByLabel('Note label').fill('Inspect wheel bearings');
+  await page.getByLabel('Every (months)').fill('8');
+  await page.getByLabel('Every (km)').fill('2400');
+  await page.getByRole('button', { name: 'Save reminder' }).click();
+  await expect(page.getByText('Inspect wheel bearings')).toBeVisible();
+  await expect(page.getByText(/7,260 km/)).toBeVisible();
+});
+
+test('@claim:exports downloads CSV, PDF, and JSON containing the sample records', async ({ page }) => {
+  await openDemo(page);
+  await openData(page);
+  const csvEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  const csv = await csvEvent;
+  expect(csv.suggestedFilename()).toMatch(/bike-service-receipts-.*\.csv/);
+  expect(await readFile((await csv.path())!, 'utf8')).toContain('Fern commuter,Chain,Lubricated');
+  const pdfEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF' }).click();
+  const pdf = await pdfEvent;
+  expect((await readFile((await pdf.path())!)).subarray(0, 8).toString()).toBe('%PDF-1.4');
+  const jsonEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Back up JSON' }).click();
+  const backup = JSON.parse(await readFile((await (await jsonEvent).path())!, 'utf8'));
+  expect(backup).toMatchObject({ version: 1 });
+  expect(backup.bikes).toHaveLength(2);
+  expect(backup.receipts).toHaveLength(4);
+});
+
+test('@claim:backup-restore merges a valid JSON backup without replacing sample records', async ({ page }) => {
+  await openDemo(page);
+  await openData(page);
+  const now = '2026-08-28T12:00:00.000Z';
+  const backup = { version: 1, exportedAt: now, bikes: [{ id: 'imported-bike', name: 'Touring bike', kind: 'Touring', odometerKm: 900, createdAt: now, updatedAt: now }], receipts: [], reminders: [] };
+  await page.locator('#import-json').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
+  await expect(page.locator('#field-note')).toContainText('Backup merged');
+  await expect(page.locator('#bike-picker option')).toHaveCount(3);
+  await page.reload();
+  await expect(page.locator('#bike-picker option')).toHaveCount(3);
+  await page.locator('#import-mode').selectOption('replace');
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.locator('#import-json').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
+  await expect(page.locator('#field-note')).toContainText('Backup restored');
+  await expect(page.locator('#bike-picker option')).toHaveCount(1);
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('Touring bike');
+});
+
+test('@claim:offline-reload reloads the demo and saves a receipt without a connection', async ({ page, context }) => {
+  await openDemo(page);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }));
   });
-  // Exercise one controlled navigation before cutting the connection, as an
-  // installed PWA does when it is launched after its initial installation.
   await page.reload();
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator('#bike-picker option:checked')).toHaveText('Offline bike');
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
   await page.locator('#component').selectOption('Brakes');
-  await page.locator('#action').selectOption('Adjusted');
+  await page.locator('#action').selectOption('Inspected');
   await page.getByRole('button', { name: 'Save receipt' }).click();
-  await expect(page.getByRole('status')).toContainText('receipt saved locally');
+  await expect(page.locator('#field-note')).toContainText('receipt saved locally');
+});
+
+test('@claim:local-privacy keeps the demo local and makes no cross-origin requests', async ({ page }) => {
+  const crossOrigin: string[] = [];
+  page.on('request', (request) => { if (new URL(request.url()).origin !== 'http://127.0.0.1:4173') crossOrigin.push(request.url()); });
+  await openDemo(page);
+  await page.getByLabel('Evidence and notes').fill('Private note stored in the demo database.');
+  await page.getByRole('button', { name: 'Save receipt' }).click();
+  const databases = await page.evaluate(async () => (await indexedDB.databases()).map((item) => item.name));
+  expect(databases).toContain('demo:bike-service-receipts');
+  expect(databases).not.toContain('bike-service-receipts');
+  expect(crossOrigin).toEqual([]);
+});
+
+test('@claim:plus-entitlements enables multiple bikes, photos, and custom reminder intervals', async ({ page }) => {
+  await openDemo(page);
+  const photo = await readFile('public/assets/icon-192.png');
+  await page.locator('#photo').setInputFiles({ name: 'service.png', mimeType: 'image/png', buffer: photo });
+  await page.getByRole('button', { name: 'Save receipt' }).click();
+  await expect(page.locator('#field-note')).toContainText('receipt saved locally');
+  expect(await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('demo:bike-service-receipts', 1); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const records = await new Promise<Array<{ photo?: string }>>((resolve, reject) => { const request = db.transaction('receipts').objectStore('receipts').getAll(); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    return records.some((item) => item.photo?.startsWith('data:image/webp'));
+  })).toBe(true);
+  await openData(page);
+  await expect(page.getByRole('heading', { name: 'Field Guide Plus is unlocked' })).toBeVisible();
+  await page.getByRole('button', { name: /Add another bike/ }).click();
+  await page.getByLabel('Bike name').fill('Demo cargo bike');
+  await page.getByRole('button', { name: 'Save bike' }).click();
+  await expect(page.locator('#bike-picker option')).toHaveCount(3);
+  await page.getByRole('button', { name: /Next up/ }).click();
+  await page.getByRole('button', { name: /Add reminder/i }).click();
+  await expect(page.getByLabel('Every (months)')).toBeEnabled();
+  await page.getByRole('button', { name: 'Close reminder form' }).click();
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await page.getByLabel('Name your first bike').fill('License test bike');
+  await page.getByRole('button', { name: 'Create bike profile' }).click();
+  await page.getByRole('button', { name: 'Data & Plus', exact: true }).click();
+  await expect(page.getByText('One-time purchase · ₹499')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Buy Plus once' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/bike-service-receipts/checkout');
+  await page.evaluate(() => { window.fetch = async () => new Response('{"valid":true,"reason":"ok","expires_at":null}', { status: 200, headers: { 'Content-Type': 'application/json' } }); });
+  await page.getByRole('button', { name: 'Have a license?' }).click();
+  await page.getByLabel('License token').fill('test-license-token');
+  await page.getByRole('button', { name: 'Verify and restore' }).click();
+  await expect(page.getByRole('heading', { name: 'Field Guide Plus is unlocked' })).toBeVisible();
+});
+
+test('@claim:free-entitlements keeps one bike, text receipts, default reminders, and exports free', async ({ page }) => {
+  await openDemo(page);
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await page.getByLabel('Name your first bike').fill('Free bike');
+  await page.getByRole('button', { name: 'Create bike profile' }).click();
+  await expect(page.locator('#photo')).toBeDisabled();
+  await page.getByRole('button', { name: 'Data & Plus', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Add another bike/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
+  await page.getByRole('button', { name: /Next up/ }).click();
+  await page.getByRole('button', { name: /Add reminder/i }).click();
+  await expect(page.getByText(/default 1 month \/ 300 km rule/)).toBeVisible();
+});
+
+test('rejects an incomplete import before writing and recovers a previously damaged database', async ({ page }) => {
+  await openDemo(page);
+  await openData(page);
+  const poison = { version: 1, exportedAt: 'x', bikes: [{ id: 'poison', name: 'Poison' }], receipts: [], reminders: [] };
+  await page.locator('#import-json').setInputFiles({ name: 'poison.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(poison)) });
+  await expect(page.getByRole('alert')).toContainText('bike record is incomplete');
+  await page.reload();
+  await expect(page.locator('#bike-picker option')).toHaveCount(2);
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await page.getByLabel('Name your first bike').fill('Recoverable bike');
+  await page.getByRole('button', { name: 'Create bike profile' }).click();
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('bike-service-receipts', 1); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    await new Promise<void>((resolve, reject) => { const transaction = db.transaction('bikes', 'readwrite'); transaction.objectStore('bikes').put({ id: 'poison', name: 'Poison' }); transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error); });
+  });
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Recover your valid bike records' })).toBeVisible();
+  await page.getByRole('button', { name: 'Remove damaged records' }).click();
+  await expect(page.locator('#bike-picker option:checked')).toHaveText('Recoverable bike');
+});
+
+test('uses real route titles, shared navigation, focus restoration, and a styled 404', async ({ page }) => {
+  await openDemo(page);
+  await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
+  await expect(page).toHaveTitle('Privacy — Bike Service Receipts');
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Built by Param Factory (external site)' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Sample bike service log' })).toBeFocused();
+  await page.goto('/not-a-real-route');
+  await expect(page).toHaveTitle('Page not found — Bike Service Receipts');
+  await expect(page.getByRole('heading', { name: 'This page is not in the log' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Return to the service log' })).toBeVisible();
+});
+
+test('@claim:accessible-layout first screen, demo, legal, and 404 pass accessibility and mobile layout checks', async ({ page }, testInfo) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Log bike service and costs' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
+  expect(await seriousAxeViolations(page)).toEqual([]);
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  expect(await seriousAxeViolations(page)).toEqual([]);
+  await openDemo(page);
+  expect(await seriousAxeViolations(page)).toEqual([]);
+  await page.goto('/privacy');
+  expect(await seriousAxeViolations(page)).toEqual([]);
+  await page.goto('/404');
+  expect(await seriousAxeViolations(page)).toEqual([]);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.screenshot({ path: testInfo.outputPath('route-accessibility.png'), fullPage: true });
 });

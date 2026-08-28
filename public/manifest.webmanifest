@@ -3,7 +3,7 @@
   "short_name": "Bike receipts",
   "description": "Private, offline bicycle service receipts and maintenance reminders.",
   "id": "/",
-  "start_url": "/?source=installed&v=1",
+  "start_url": "/?source=installed&v=2",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

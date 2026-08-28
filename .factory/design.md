@@ -65,3 +65,4 @@ The hero is one original landscape illustration used only on the first-run field
 
 Generated on 2026-08-28 with the factory Azure image deployment via `/opt/fleet/lib/gen-image.sh`. The source PNG, exact prompt sidecar, and optimized WebP/AVIF derivatives are retained under `assets/src/` and `public/assets/`. The generated illustration is original for this product and contains no real people, brands, or copyrighted characters; the app footer discloses that it is AI-generated.
 
+The 1200×630 social preview is a center crop of that original illustration. The apple-touch icon is a 180 px derivative of the hand-authored product icon. Both were produced locally with ImageMagick; no additional source art or license applies.

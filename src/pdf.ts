@@ -27,7 +27,7 @@ export function createReceiptsPdf(receipts: Receipt[], bikes: Bike[]): Blob {
   const bikeNames = new Map(bikes.map((bike) => [bike.id, bike.name]));
   const contentLines: Array<{ text: string; bold?: boolean; gap?: number }> = [
     { text: 'BIKE SERVICE RECEIPTS', bold: true, gap: 8 },
-    { text: `Portable field log  |  Exported ${dateLabel(new Date().toISOString().slice(0, 10))}`, gap: 18 },
+    { text: `Service history  |  Exported ${dateLabel(new Date().toISOString().slice(0, 10))}`, gap: 18 },
   ];
   for (const receipt of receipts.slice().sort((a, b) => b.servicedAt.localeCompare(a.servicedAt))) {
     contentLines.push(
