@@ -343,5 +343,5 @@ test('README and catalog use the reviewed plain wording', async () => {
   expect(readme).toContain('## Bike service features');
   expect(readme).not.toMatch(/PWA shell|IndexedDB records|botanical field-guide treatment|factory registers/i);
   expect(catalog.length).toBeLessThanOrEqual(120);
-  expect(catalog).toMatch(/^Log\b/);
+  expect(catalog).toMatch(/^Track\b/);
 });
