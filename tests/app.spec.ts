@@ -18,18 +18,40 @@ async function openData(page: Page) {
 }
 
 test('@claim:demo-isolation sample data is one click away and never changes real records', async ({ page }) => {
-  await page.goto('/?demo=1');
-  await page.getByRole('link', { name: 'Start for real' }).click();
+  await page.goto('/');
   await page.getByLabel('Name your first bike').fill('My real bicycle');
   await page.getByRole('button', { name: 'Create bike profile' }).click();
   await expect(page.locator('#bike-picker option:checked')).toHaveText('My real bicycle');
-  await page.goto('/?demo=1');
+  await page.evaluate(() => { localStorage.setItem('real-storage-sentinel', 'keep-local'); sessionStorage.setItem('real-session-sentinel', 'keep-session'); });
+  const realStorageBefore = await page.evaluate(() => ({
+    local: Object.fromEntries(Object.entries(localStorage).filter(([key]) => !key.startsWith('demo:'))),
+    session: Object.fromEntries(Object.entries(sessionStorage).filter(([key]) => !key.startsWith('demo:'))),
+    databases: (indexedDB.databases ? undefined : 'unsupported'),
+  }));
+  const realDatabaseNamesBefore = await page.evaluate(async () => (await indexedDB.databases()).map((item) => item.name).filter((name): name is string => Boolean(name && !name.startsWith('demo:'))).sort());
+  await page.goto('/?demo=1&license=DEMO_SENTINEL');
+  await expect(page).not.toHaveURL(/license=/);
   await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
+  expect(await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('demo:bike-service-receipts', 1); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const count = (store: 'bikes' | 'receipts' | 'reminders') => new Promise<number>((resolve, reject) => { const request = db.transaction(store).objectStore(store).count(); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    return { bikes: await count('bikes'), receipts: await count('receipts'), reminders: await count('reminders') };
+  })).toEqual({ bikes: 2, receipts: 4, reminders: 3 });
   await page.locator('#bike-picker').selectOption('demo-gravel');
+  await expect.poll(() => page.evaluate(() => ({
+    local: Object.fromEntries(Object.entries(localStorage).filter(([key]) => !key.startsWith('demo:'))),
+    session: Object.fromEntries(Object.entries(sessionStorage).filter(([key]) => !key.startsWith('demo:'))),
+  }))).toEqual({ local: realStorageBefore.local, session: realStorageBefore.session });
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.locator('#bike-picker option:checked')).toHaveText('Fern commuter');
   await page.getByRole('link', { name: 'Start for real' }).click();
   await expect(page.locator('#bike-picker option:checked')).toHaveText('My real bicycle');
+  expect(await page.evaluate(() => ({
+    local: Object.fromEntries(Object.entries(localStorage).filter(([key]) => !key.startsWith('demo:'))),
+    session: Object.fromEntries(Object.entries(sessionStorage).filter(([key]) => !key.startsWith('demo:'))),
+  }))).toEqual({ local: realStorageBefore.local, session: realStorageBefore.session });
+  expect(await page.evaluate(async () => (await indexedDB.databases()).map((item) => item.name).filter((name): name is string => Boolean(name && !name.startsWith('demo:'))).sort())).toEqual(realDatabaseNamesBefore);
+  await expect(page.locator('#bike-picker option')).toHaveCount(1);
 });
 
 test('@claim:service-records logs, searches, and deletes a service receipt', async ({ page }) => {
@@ -53,6 +75,7 @@ test('@claim:reminders creates date and odometer reminders from service work', a
   await openDemo(page);
   await page.getByRole('button', { name: /Next up/ }).click();
   await expect(page.getByText('Clean and lubricate chain')).toBeVisible();
+  await expect(page.getByText('A reminder is not a safety check.')).toBeVisible();
   await page.getByRole('button', { name: /Add reminder/i }).click();
   await page.getByLabel('Note label').fill('Inspect wheel bearings');
   await page.getByLabel('Every (months)').fill('8');
@@ -163,11 +186,31 @@ test('@claim:plus-entitlements enables multiple bikes, photos, and custom remind
   await expect(page.getByText('One-time purchase · ₹499')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Purchases not open' })).toBeDisabled();
   await expect(page.getByText('Existing licenses can still be restored.')).toBeVisible();
-  await page.evaluate(() => { window.fetch = async () => new Response('{"valid":true,"reason":"ok","expires_at":null}', { status: 200, headers: { 'Content-Type': 'application/json' } }); });
+});
+
+test('@claim:license-verification-destination sends a restored token only to Sociobot verification', async ({ browser }) => {
+  const verificationUrl = 'https://api.sociobot.in/api/v1/products/bike-service-receipts/verify?license=fixture-license-token';
+  const credentialRequests: string[] = [];
+  const context = await browser.newContext({ baseURL: process.env.BASE_URL ?? 'http://127.0.0.1:4173', serviceWorkers: 'block' });
+  const page = await context.newPage();
+  page.on('request', (request) => { if (request.url().includes('license=')) credentialRequests.push(request.url()); });
+  await context.route('**/api/v1/products/bike-service-receipts/verify*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      body: '{"valid":true,"reason":"ok","expires_at":null}',
+    });
+  });
+  await page.goto('/');
+  await page.getByLabel('Name your first bike').fill('License test bike');
+  await page.getByRole('button', { name: 'Create bike profile' }).click();
+  await page.getByRole('button', { name: 'Data & Plus', exact: true }).click();
   await page.getByRole('button', { name: 'Have a license?' }).click();
-  await page.getByLabel('License token').fill('test-license-token');
+  await page.getByLabel('License token').fill('fixture-license-token');
   await page.getByRole('button', { name: 'Verify and restore' }).click();
   await expect(page.getByRole('heading', { name: 'Field Guide Plus is unlocked' })).toBeVisible();
+  expect(credentialRequests).toEqual([verificationUrl]);
+  await context.close();
 });
 
 test('@claim:free-entitlements keeps one bike, text receipts, default reminders, and exports free', async ({ page }) => {
@@ -220,8 +263,8 @@ test('uses real route titles, shared navigation, focus restoration, and a styled
   const response = await page.goto('/not-a-real-route');
   if (process.env.BASE_URL) expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle('Page not found — Bike Service Receipts');
-  await expect(page.getByRole('heading', { name: 'This page is not in the log' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Return to the service log' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bike service page not found' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open Bike Service Receipts' })).toBeVisible();
 });
 
 test('@deployment:static-404 serves the complete missing-page document before JavaScript', async ({ browser }) => {
@@ -235,13 +278,13 @@ test('@deployment:static-404 serves the complete missing-page document before Ja
   expect(response).not.toBeNull();
   if (process.env.BASE_URL) expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle('Page not found — Bike Service Receipts');
-  await expect(page.locator('h1')).toHaveText('This page is not in the log');
+  await expect(page.locator('h1')).toHaveText('Bike service page not found');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://bike-service-receipts.sociobot.in/404');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'This Bike Service Receipts page does not exist. Return to the service log.');
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Page not found — Bike Service Receipts');
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/assets/apple-touch-icon.png');
-  await expect(page.getByRole('link', { name: 'Return to the service log' })).toHaveAttribute('href', '/');
+  await expect(page.getByRole('link', { name: 'Open Bike Service Receipts' })).toHaveAttribute('href', '/');
   await context.close();
 });
 
@@ -259,11 +302,21 @@ test('static host sends only known app routes to the SPA shell', async () => {
   expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
 });
 
+test('sitemap lists only canonical indexable routes', async () => {
+  const sitemap = await readFile('public/sitemap.xml', 'utf8');
+  for (const path of ['/', '/demo', '/privacy', '/terms']) expect(sitemap).toContain(`https://bike-service-receipts.sociobot.in${path}`);
+  expect(sitemap).not.toContain('/404');
+});
+
 test('@claim:accessible-layout first screen, demo, legal, and 404 pass accessibility and mobile layout checks', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Log bike service and costs' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
   await expect(page.getByText('Private bike maintenance log')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'How bike service records work' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What the app does not do' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Free and Field Guide Plus' })).toBeVisible();
+  await expect(page.getByText('Free for one bike; Plus ₹499 once sales open')).toBeVisible();
   await expect(page.getByText('Illustration of a commuter bike and the tools recorded in a service receipt.')).toBeVisible();
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /social-preview\.jpg$/);
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/assets/apple-touch-icon.png');
@@ -286,7 +339,8 @@ test('README and catalog use the reviewed plain wording', async () => {
   const catalog = (await readFile('.factory/catalog-description.txt', 'utf8')).trim();
   expect(readme).toContain('Log service, costs, odometer readings, and reminders for each bike.');
   expect(readme).toContain('Set reminders from the last service date or odometer reading.');
-  expect(readme).toContain('License verification uses Sociobot.');
+  expect(readme).toContain('License verification sends a restored token to Sociobot.');
+  expect(readme).toContain('## Bike service features');
   expect(readme).not.toMatch(/PWA shell|IndexedDB records|botanical field-guide treatment|factory registers/i);
   expect(catalog.length).toBeLessThanOrEqual(120);
   expect(catalog).toMatch(/^Log\b/);

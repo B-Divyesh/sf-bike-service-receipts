@@ -9,7 +9,7 @@ const LICENSE_KEY = `sb_license:${SLUG}`;
 const VERDICT_KEY = `sb_license_verdict:${SLUG}`;
 const VERIFY_URL = `https://api.sociobot.in/api/v1/products/${SLUG}/verify`;
 const SITE_URL = 'https://bike-service-receipts.sociobot.in';
-const BUILD_ID = 'polish-2';
+const BUILD_ID = 'polish-3';
 const demoMode = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
 const SELECTED_BIKE_KEY = demoMode ? 'demo:selectedBikeId' : 'selectedBikeId';
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -205,15 +205,35 @@ function renderWelcome(): void {
           <div class="field"><label for="first-name">Name your first bike <span aria-hidden="true">*</span></label><input id="first-name" name="name" required maxlength="60" autocomplete="off" placeholder="e.g. Green commuter"><small>This is how it will appear on every receipt.</small></div>
           <div class="field"><label for="first-kind">Type</label><select id="first-kind" name="kind"><option>City / hybrid</option><option>Road</option><option>Mountain</option><option>Gravel</option><option>Cargo</option><option>Folding</option><option>E-bike</option><option>Other</option></select></div>
           <div class="welcome-actions"><button class="primary" type="submit">${icon('bike')} Create bike profile</button><a class="secondary" href="/?demo=1" data-demo-link>Try it with sample data</a></div>
-          <p class="action-note">Create your own profile, or open a separate sample log.</p>
+          <p class="action-note">Create your own bike profile, or open the demo.</p>
           <p id="welcome-error" class="form-error" role="alert"></p>
         </form>
-        <ul class="trust-list"><li>Works offline after your first visit</li><li>Exports CSV, PDF, and JSON</li><li>Stores records on this device</li></ul>
+        <ul class="trust-list"><li>Works offline after your first visit</li><li>Stores records on this device</li><li>Free for one bike; Plus ₹499 once sales open</li></ul>
       </section>
       <figure class="welcome-art">
         <picture><source type="image/avif" srcset="/assets/field-guide-hero-768.avif 768w, /assets/field-guide-hero-1536.avif 1536w" sizes="(max-width: 900px) calc(100vw - 36px), 55vw"><source type="image/webp" srcset="/assets/field-guide-hero-768.webp 768w, /assets/field-guide-hero-1536.webp 1536w" sizes="(max-width: 900px) calc(100vw - 36px), 55vw"><img src="/assets/field-guide-hero-1536.webp" width="1536" height="1024" alt="An illustrated green city bicycle arranged on specimen paper with fern leaves, chain brush, oil bottle, blank receipt slip, and pencil." fetchpriority="high" decoding="async"></picture>
         <figcaption>Illustration of a commuter bike and the tools recorded in a service receipt.</figcaption>
       </figure>
+      <section class="landing-preview" aria-labelledby="preview-title">
+        <div class="landing-section-heading"><div><p class="eyebrow">Sample service receipt</p><h2 id="preview-title">See the record before you start</h2><p>Open the demo to browse two bikes, four receipts, and reminders already due or planned.</p></div><a class="secondary" href="/demo" data-demo-link>Open the demo</a></div>
+        <div class="preview-record">
+          <div class="preview-stamp">FERN COMMUTER<br><span>RECORDED 21 AUG 2026</span></div>
+          <div><p class="eyebrow">Chain · lubricated</p><h3>Cleaned after rain</h3><p>Dry-weather lube applied at 4,860 km. Self-recorded.</p></div>
+          <dl><div><dt>Cost</dt><dd>₹320</dd></div><div><dt>Next</dt><dd>300 km</dd></div><div><dt>Export</dt><dd>CSV, PDF, JSON</dd></div></dl>
+        </div>
+      </section>
+      <section class="landing-section workflow-section" aria-labelledby="workflow-title">
+        <div class="landing-section-heading"><div><p class="eyebrow">Three steps</p><h2 id="workflow-title">How bike service records work</h2></div></div>
+        <ol class="workflow-list"><li><span>01</span><div><h3>Name your bike</h3><p>Start with a bike name, then keep its work together.</p></div></li><li><span>02</span><div><h3>Log the work</h3><p>Add the service, date, cost, odometer, notes, and optional photo.</p></div></li><li><span>03</span><div><h3>Check the next reminder</h3><p>See date and distance reminders from the service records you entered.</p></div></li></ol>
+      </section>
+      <section class="landing-section limits-section" aria-labelledby="limits-title">
+        <div><p class="eyebrow">Limits and privacy</p><h2 id="limits-title">What the app does not do</h2></div>
+        <div class="limits-copy"><p>Reminders use values you enter. They do not diagnose problems or certify bike safety.</p><p>Browser data can be cleared. Export a JSON backup to keep a copy.</p></div>
+      </section>
+      <section class="landing-section pricing-section" aria-labelledby="pricing-title">
+        <div class="landing-section-heading"><div><p class="eyebrow">One-time upgrade</p><h2 id="pricing-title">Free and Field Guide Plus</h2></div></div>
+        <div class="pricing-docket"><section><h3>Free log</h3><p>One bike, text receipts, default reminders, and every export.</p></section><section><h3>Field Guide Plus · ₹499 once</h3><p>Add multiple bikes, compressed photos, and custom reminders when sales open.</p><p class="sales-note">Purchases are not open. Existing licenses can be restored through Sociobot.</p></section></div>
+      </section>
       <p class="welcome-legal">By continuing you accept the <a href="/terms" data-page>terms</a>. Read how your data is handled in <a href="/privacy" data-page>privacy</a>. The product illustration was generated with AI.</p>
     </main>${siteFooter()}`;
   document.querySelector<HTMLFormElement>('#first-bike-form')!.addEventListener('submit', async (event) => {
@@ -540,8 +560,8 @@ function bindData(): void {
 }
 
 function legalContent(pathname: string): string {
-  if (pathname === '/privacy') return `<p class="eyebrow">Effective 28 August 2026</p><h1>Privacy, kept local</h1><p class="lede">Bike Service Receipts is designed so your maintenance history does not need an account or our database.</p><h2>What stays on your device</h2><p>Bike profiles, receipts, notes, odometer readings, reminders, and attached photos are stored in your browser’s IndexedDB. The Plus license token and its cached verification result are stored in localStorage. Removing site data removes this local copy, so keep JSON backups.</p><h2>When data leaves</h2><p>Nothing is uploaded by the free app. When you verify or restore Plus, the license token is sent to the Sociobot billing API solely to check its validity. When you buy Plus, the hosted checkout is operated by Sociobot with Dodo as merchant of record; their checkout privacy terms apply. Files you export go only where you choose.</p><h2>Tracking and permissions</h2><p>There are no analytics, advertising trackers, third-party fonts, location requests, ride imports, or background photo uploads. The service worker caches app files for offline use.</p><h2>Your controls</h2><p>Export JSON for a complete portable backup, CSV or PDF for readable history, and clear this site’s storage from your browser to erase local data.</p>`;
-  return `<p class="eyebrow">Effective 28 August 2026</p><h1>Terms for the service log</h1><p class="lede">Use Bike Service Receipts as your private record of work done, not as a safety check.</p><h2>The service</h2><p>The free app provides one bike profile, text service receipts, default reminders, and every export.</p><p>Field Guide Plus will cost ₹499 once sales open. It adds multiple bikes, photo evidence, and custom reminder intervals.</p><h2>Purchases and refunds</h2><p>Sociobot handles checkout, taxes, receipts, and refunds. Dodo is the merchant of record.</p><p>A refund or charge reversal revokes the license. The free app and your exports remain usable.</p><h2>Your responsibility</h2><p>Reminders are estimates based on values you enter. They do not inspect a bicycle, identify faults, or certify safety.</p><p>Inspect before riding. Use a qualified mechanic when uncertain.</p><h2>Local data and availability</h2><p>You are responsible for backups. Device settings, private browsing, or uninstalling can clear browser storage.</p><p>The software is provided “as is” without warranties, to the extent permitted by law.</p><h2>Fair use</h2><p>Do not misuse the billing API, bypass a paid feature, or use the app unlawfully. You own the maintenance data you create.</p>`;
+  if (pathname === '/privacy') return `<p class="eyebrow">Effective 28 August 2026</p><h1>Privacy, kept local</h1><p class="lede">Bike Service Receipts keeps your maintenance history in this browser without an account.</p><h2>What stays on your device</h2><p>Bike profiles, receipts, notes, odometer readings, reminders, and attached photos are stored in your browser’s IndexedDB. The Plus license token and its cached verification result are stored in localStorage. Removing site data removes this local copy, so keep JSON backups.</p><h2>When data leaves</h2><p>Nothing is uploaded by the free app. When you verify or restore Plus, the license token is sent to the Sociobot billing API to check its validity. Files you export go only where you choose.</p><h2>Tracking and permissions</h2><p>There are no analytics, advertising trackers, third-party fonts, location requests, ride imports, or background photo uploads. The service worker caches app files for offline use.</p><h2>Your controls</h2><p>Export JSON for a complete portable backup, CSV or PDF for readable history, and clear this site’s storage from your browser to erase local data.</p>`;
+  return `<p class="eyebrow">Effective 28 August 2026</p><h1>Terms for the service log</h1><p class="lede">Use Bike Service Receipts as a private record of work done, not as a safety check.</p><h2>The service</h2><p>The free app provides one bike profile, text service receipts, default reminders, and every export.</p><p>Field Guide Plus costs ₹499 once sales open. It adds multiple bikes, photo evidence, and custom reminder intervals.</p><h2>Purchases</h2><p>Purchases are not open. Existing licenses can be restored through Sociobot.</p><h2>Your responsibility</h2><p>Reminders use values you enter. They do not inspect a bicycle, identify faults, or certify safety.</p><p>Inspect before riding. Use a qualified mechanic when uncertain.</p><h2>Local data and availability</h2><p>You are responsible for backups. Device settings, private browsing, or uninstalling can clear browser storage.</p><p>The software is provided “as is” without warranties, to the extent permitted by law.</p><h2>Fair use</h2><p>Do not misuse the billing API, bypass a paid feature, or use the app unlawfully. You own the maintenance data you create.</p>`;
 }
 
 function renderLegal(pathname: string, moveFocus = false): void {
@@ -554,7 +574,7 @@ function renderLegal(pathname: string, moveFocus = false): void {
 
 function renderNotFound(moveFocus = false): void {
   setMetadata('Page not found — Bike Service Receipts', 'This Bike Service Receipts page does not exist. Return to the service log.', '/404');
-  app.innerHTML = `${siteHeader()}${demoBanner()}<main id="main" class="not-found"><p class="eyebrow">Missing record · 404</p><h1>This page is not in the log</h1><p>The address does not match a bike service page.</p><a class="primary" href="/" data-page>Return to the service log</a></main>${siteFooter()}`;
+  app.innerHTML = `${siteHeader()}${demoBanner()}<main id="main" class="not-found"><p class="eyebrow">Error 404</p><h1>Bike service page not found</h1><p>The address does not match a Bike Service Receipts page.</p><a class="primary" href="/" data-page>Open Bike Service Receipts</a></main>${siteFooter()}`;
   finishRouteChange(moveFocus);
 }
 
@@ -597,6 +617,11 @@ async function verifyLicense(force = false): Promise<boolean> {
 
 function acceptReturnedLicense(): void {
   const url = new URL(location.href); const token = url.searchParams.get('license'); if (!token) return;
+  if (demoMode) {
+    url.searchParams.delete('license');
+    history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    return;
+  }
   localStorage.setItem(LICENSE_KEY, token); url.searchParams.delete('license'); history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
 }
 

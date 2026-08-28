@@ -6,7 +6,7 @@ Live product: <https://bike-service-receipts.sociobot.in>
 
 [Try it with sample data](https://bike-service-receipts.sociobot.in/?demo=1). The demo uses separate storage and can be reset at any time.
 
-## What it does
+## Bike service features
 
 - Create named bike profiles with type, year, identifier, and odometer.
 - Record component, action, date, cost, provider, notes, odometer, and an optional photo.
@@ -18,7 +18,7 @@ Live product: <https://bike-service-receipts.sociobot.in>
 
 Records stay in this browser unless you export them. The app has no analytics, advertising trackers, third-party scripts, or hosted fonts.
 
-The free version includes one bike, text receipts, default reminders, and every export. Field Guide Plus will cost ₹499 once sales open. It adds multiple bikes, compressed photos, and custom reminders. License verification uses Sociobot.
+The free version includes one bike, text receipts, default reminders, and every export. Field Guide Plus costs ₹499 once sales open. It adds multiple bikes, compressed photos, and custom reminders. License verification sends a restored token to Sociobot.
 
 Reminders are records, not mechanical diagnosis or safety certification.
 
@@ -55,7 +55,7 @@ Real records use the IndexedDB database `bike-service-receipts`. Demo records us
 
 The optional license token uses `sb_license:bike-service-receipts` in localStorage.
 
-The app contacts Sociobot only when a real license needs verification. Clearing browser data can remove records, so keep a JSON backup.
+The app sends a restored license token to Sociobot for verification. Clearing browser data can remove records, so keep a JSON backup.
 
 Read the [privacy page](https://bike-service-receipts.sociobot.in/privacy) and [terms](https://bike-service-receipts.sociobot.in/terms).
 

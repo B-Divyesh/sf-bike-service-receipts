@@ -1,4 +1,4 @@
-const VERSION = 'field-log-polish-2';
+const VERSION = 'field-log-polish-3';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const APP_SHELL = [

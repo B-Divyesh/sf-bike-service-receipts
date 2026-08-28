@@ -6,4 +6,6 @@ The sample opens immediately with two bikes, four service receipts, recorded cos
 
 Demo records use the separate IndexedDB database `demo:bike-service-receipts`. Its bike selection uses the `demo:selectedBikeId` localStorage key. Demo mode never opens the real `bike-service-receipts` database or its selected-bike key.
 
+Demo URLs ignore and remove any `license` parameter. They never write a real license or verdict key.
+
 Use **Reset demo** to restore the original sample. Use **Start for real** to clear the demo database and open the real local log.
