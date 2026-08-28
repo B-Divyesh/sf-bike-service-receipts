@@ -118,7 +118,8 @@ test('@claim:offline-reload reloads the demo and saves a receipt without a conne
 
 test('@claim:local-privacy keeps the demo local and makes no cross-origin requests', async ({ page }) => {
   const crossOrigin: string[] = [];
-  page.on('request', (request) => { if (new URL(request.url()).origin !== 'http://127.0.0.1:4173') crossOrigin.push(request.url()); });
+  const productOrigin = new URL(process.env.BASE_URL ?? 'http://127.0.0.1:4173').origin;
+  page.on('request', (request) => { if (new URL(request.url()).origin !== productOrigin) crossOrigin.push(request.url()); });
   await openDemo(page);
   await page.getByLabel('Evidence and notes').fill('Private note stored in the demo database.');
   await page.getByRole('button', { name: 'Save receipt' }).click();
