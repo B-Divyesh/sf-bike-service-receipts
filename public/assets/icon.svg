@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Bicycle wheel and leaf">
+  <rect width="512" height="512" rx="108" fill="#f4f0e4"/>
+  <circle cx="256" cy="272" r="147" fill="none" stroke="#203127" stroke-width="22"/>
+  <circle cx="256" cy="272" r="24" fill="#a85b13"/>
+  <g stroke="#2f684b" stroke-width="11" stroke-linecap="round">
+    <path d="M256 248V133M256 296v115M232 272H117M280 272h115M239 255l-81-81M273 289l81 81M273 255l81-81M239 289l-81 81"/>
+  </g>
+  <path d="M252 118c25-54 80-63 123-36-15 48-61 79-117 51" fill="#52713d" stroke="#203127" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M256 133c29-20 55-31 88-39" fill="none" stroke="#f4f0e4" stroke-width="7" stroke-linecap="round"/>
+</svg>
