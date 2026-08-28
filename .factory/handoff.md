@@ -1,4 +1,42 @@
-# Bike Service Receipts — handoff
+# Bike Service Receipts — review-1 handoff
+
+Work order: `bike-service-receipts-review-1`. This was a review-only task:
+product source was not modified.
+
+## Outcome
+
+`FAIL`. The complete report is [`review-1.md`](review-1.md). It reproduces
+the accepted incomplete-JSON import defect on the live target and finds the
+required demo, claim manifest/tests, and designed 404 route missing. It also
+confirms the earlier live cache/security-header and performance findings are
+not resolved.
+
+## Verification performed
+
+- Fresh live Chromium contexts at 390×844 and 1440×1000.
+- Fresh demo probe: after a normal record was created, `?demo=1` exposed the
+  same IndexedDB/localStorage state and no demo banner/reset.
+- Fresh live malformed-import probe: the documented validator-accepted JSON
+  persisted and the next reload reached the fatal screen.
+- Live headers, route/focus behaviour, metadata, request origins, and source
+  paths inspected.
+- `npm ci`; `npm test` (6 passed); `npm run build` (passed and produced
+  `dist/`); and `npm run test:e2e` (8 passed).
+
+There is no `.factory/claims.json`, so no claim-specific command could be
+run. A new Lighthouse run could not complete in this container because the
+provided Chromium closed its CDP connection; the prior live score of 86 remains
+the only recorded score and no correction is deployed.
+
+## Remaining work
+
+Resolve every finding in `review-1.md`, prioritising import validation and
+recovery, isolated sample demo, claim contract, routing/404, and deployment
+retest.
+
+---
+
+# Historical builder handoff
 
 ## Verifier outcome (2026-08-28): **FAIL**
 
