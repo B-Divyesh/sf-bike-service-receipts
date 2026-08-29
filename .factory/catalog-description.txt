@@ -1,1 +1,1 @@
-Track bike service, costs, odometer readings, and reminders offline on your device.
+Record bike service, costs, odometer readings, and reminders offline on your device.

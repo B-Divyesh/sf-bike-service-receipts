@@ -1,6 +1,6 @@
 # Copy audit
 
-Checked 2026-08-28 for polish round 3. Counts treat hyphenated terms and the
+Checked 2026-08-29 for polish round 4. Counts treat hyphenated terms and the
 product name as one word. No landing or README sentence exceeds 22 words or
 uses a banned marketing term.
 
@@ -47,11 +47,16 @@ privacy and terms pages use the same tested wording. Billing operation,
 merchant, tax, receipt, refund, and revocation statements were removed because
 purchases are not open.
 
+The service form says **“Maximum source size 10 MB.”** The README says
+**“Attach a source photo up to 10 MB with Field Guide Plus; the app stores a
+compressed copy.”** The boundary is covered by `photo-source-limit`; photo
+compression is covered by `plus-entitlements`.
+
 ## Catalog
 
 | Copy | Characters | Result |
 | --- | ---: | --- |
-| Track bike service, costs, odometer readings, and reminders offline on your device. | 80 | Verb-first, under 120 characters |
+| Record bike service, costs, odometer readings, and reminders offline on your device. | 84 | Verb-first, under 120 characters |
 
 ## Terminology
 

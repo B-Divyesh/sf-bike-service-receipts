@@ -9,7 +9,8 @@ const LICENSE_KEY = `sb_license:${SLUG}`;
 const VERDICT_KEY = `sb_license_verdict:${SLUG}`;
 const VERIFY_URL = `https://api.sociobot.in/api/v1/products/${SLUG}/verify`;
 const SITE_URL = 'https://bike-service-receipts.sociobot.in';
-const BUILD_ID = 'polish-3';
+const BUILD_ID = 'polish-4';
+const MAX_PHOTO_BYTES = 10_000_000;
 const demoMode = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
 const SELECTED_BIKE_KEY = demoMode ? 'demo:selectedBikeId' : 'selectedBikeId';
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -354,7 +355,7 @@ function bikeDialog(bike?: Bike): string {
 }
 
 async function imageData(file: File): Promise<string> {
-  if (file.size > 10_000_000) throw new Error('Choose a photo smaller than 10 MB.');
+  if (file.size > MAX_PHOTO_BYTES) throw new Error('Choose a photo smaller than 10 MB.');
   const image = await createImageBitmap(file);
   const scale = Math.min(1, 1200 / Math.max(image.width, image.height));
   const canvas = document.createElement('canvas'); canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale);

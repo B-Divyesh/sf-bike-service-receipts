@@ -188,6 +188,49 @@ test('@claim:plus-entitlements enables multiple bikes, photos, and custom remind
   await expect(page.getByText('Existing licenses can still be restored.')).toBeVisible();
 });
 
+test('@claim:photo-source-limit accepts 10 MB photos and rejects larger photos without saving', async ({ page }) => {
+  const storedCounts = () => page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('demo:bike-service-receipts', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const count = (store: 'receipts' | 'reminders') => new Promise<number>((resolve, reject) => {
+      const request = db.transaction(store).objectStore(store).count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const result = { receipts: await count('receipts'), reminders: await count('reminders') };
+    db.close();
+    return result;
+  });
+
+  await openDemo(page);
+  await expect(page.locator('#photo-help')).toHaveText('Stored only on this device. Maximum source size 10 MB.');
+  expect(await storedCounts()).toEqual({ receipts: 4, reminders: 3 });
+
+  await page.locator('#photo').setInputFiles({
+    name: 'too-large.png',
+    mimeType: 'image/png',
+    buffer: Buffer.alloc(10_000_001),
+  });
+  await page.getByRole('button', { name: 'Save receipt' }).click();
+  await expect(page.locator('#receipt-error')).toHaveText('Choose a photo smaller than 10 MB.');
+  expect(await storedCounts()).toEqual({ receipts: 4, reminders: 3 });
+
+  const source = await readFile('public/assets/icon-192.png');
+  const boundaryPhoto = Buffer.concat([source, Buffer.alloc(10_000_000 - source.length)]);
+  expect(boundaryPhoto.byteLength).toBe(10_000_000);
+  await page.locator('#photo').setInputFiles({
+    name: 'ten-megabytes.png',
+    mimeType: 'image/png',
+    buffer: boundaryPhoto,
+  });
+  await page.getByRole('button', { name: 'Save receipt' }).click();
+  await expect(page.locator('#field-note')).toContainText('receipt saved locally');
+  expect(await storedCounts()).toEqual({ receipts: 5, reminders: 3 });
+});
+
 test('@claim:license-verification-destination sends a restored token only to Sociobot verification', async ({ browser }) => {
   const verificationUrl = 'https://api.sociobot.in/api/v1/products/bike-service-receipts/verify?license=fixture-license-token';
   const credentialRequests: string[] = [];
@@ -343,5 +386,5 @@ test('README and catalog use the reviewed plain wording', async () => {
   expect(readme).toContain('## Bike service features');
   expect(readme).not.toMatch(/PWA shell|IndexedDB records|botanical field-guide treatment|factory registers/i);
   expect(catalog.length).toBeLessThanOrEqual(120);
-  expect(catalog).toMatch(/^Track\b/);
+  expect(catalog).toMatch(/^Record\b/);
 });

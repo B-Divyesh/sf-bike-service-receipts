@@ -10,6 +10,7 @@ Live product: <https://bike-service-receipts.sociobot.in>
 
 - Create named bike profiles with type, year, identifier, and odometer.
 - Record component, action, date, cost, provider, notes, odometer, and an optional photo.
+- Attach a source photo up to 10 MB with Field Guide Plus; the app stores a compressed copy.
 - Search each bike’s service history and delete individual receipts.
 - Set reminders from the last service date or odometer reading.
 - Export CSV and PDF histories, or a JSON backup that can be merged or restored.
@@ -42,6 +43,8 @@ npm run test:e2e
 ```
 
 Playwright 1.58.2 runs browser tests against a production preview. The build command checks TypeScript and writes the static site to `dist/`.
+
+Every customer-facing claim has one tagged browser test listed in [`.factory/claims.json`](.factory/claims.json).
 
 To inspect the build:
 
