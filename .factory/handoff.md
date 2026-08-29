@@ -1,13 +1,15 @@
-# Bike Service Receipts — polish round 3 handoff
+# Bike Service Receipts — review 4 handoff
 
-Work order: `bike-service-receipts-polish-3`
-Role: repair
+Work order: `bike-service-receipts-review-4`
+Role: reviewer
 Live URL: <https://bike-service-receipts.sociobot.in>
-App repair commits: `591bea4`, `32a2fd1`
-Deployment: `b0874965-19c1-46f4-8d17-98c71e84058b`
 
 ## Completed
 
+- Conducted a fresh cold mobile/desktop review and wrote `.factory/review-4.md`.
+- Read the brief, visual thesis, demo and claim contracts, every earlier review,
+  polish report, verification report, and prior handoff. No product code was
+  changed in this work order.
 - Closed every finding from review rounds 1–3. The detailed finding-by-finding
   mapping is in `.factory/polish-3.md`.
 - Made demo license returns safe: `?demo=1&license=...` strips the parameter
@@ -20,6 +22,19 @@ Deployment: `b0874965-19c1-46f4-8d17-98c71e84058b`
 - Preserved the botanical field-guide visual system and original art.
 
 ## Verification
+
+Review 4 clean clone at `9572a3c2ebcd5f69d12888ffcd1cf1fc90ca7293`:
+
+- `npm ci` completed with zero vulnerabilities; `npm test` passed 8/8; and
+  `npm run build` created `dist/`.
+- All 11 exact claim-manifest commands passed independently in desktop
+  Chromium and Pixel 5 projects.
+- `BASE_URL=https://bike-service-receipts.sociobot.in npx playwright test
+  --workers=2` passed 34/34.
+- Fresh demo request logging found only same-origin requests. The demo
+  license-return URL used only `demo:` local storage/IndexedDB, and Reset kept
+  that isolation. Valid routes and all discovered links returned 200; an
+  unknown route returned the designed static 404 with HTTP 404.
 
 Fresh clone `/tmp/bike-service-receipts-clean-final-13Uo2r` at `32a2fd1`:
 
@@ -70,5 +85,9 @@ Production checks after deploy:
 
 ## Known gaps
 
-None. Purchases remain deliberately closed; the UI and legal copy say so while
-existing Sociobot licenses remain restorable.
+Review 4 is **FAIL** on F-4-1: the visible photo help says **“Maximum source
+size 10 MB”**, but this quantitative promise has no `.factory/claims.json`
+entry or boundary test. Add and pass the specified `photo-source-limit` test,
+or remove the numerical promise, before a PASS review. Purchases remain
+deliberately closed; the UI and legal copy say so while existing Sociobot
+licenses remain restorable.
