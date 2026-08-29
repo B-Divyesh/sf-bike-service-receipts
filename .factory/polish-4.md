@@ -36,7 +36,7 @@ deployment `06e33265-c73f-4b4b-bec2-7e8cd9a76f4c` was cold-checked at
 | F-3-6 | Retained the README heading “Bike service features.” | `README and catalog use the reviewed plain wording`; `.factory/copy-audit.md`; `.factory/evidence/polish-4-live/welcome-mobile.png`; live root uses the same bike-service terminology. |
 | F-3-7 | Retained “demo” as the single term around the required “Try it with sample data” action. | `@claim:accessible-layout`; `.factory/evidence/polish-4-live/welcome-mobile.png`; live root and `/demo`. |
 | F-3-8 | Retained direct static and SPA wording: “Error 404,” “Bike service page not found,” and “Open Bike Service Receipts.” | Both 404 tests; `.factory/evidence/polish-4-live/not-found-desktop.png`; live unknown URL. |
-| F-3-9 | Retained a sitemap containing only `/`, `/demo`, `/privacy`, and `/terms`. | `sitemap lists only canonical indexable routes`; `.factory/evidence/polish-4-live/route-link-audit.json` and `welcome-mobile.png`; live `/sitemap.xml`. |
+| F-3-9 | Retained a sitemap containing only `/`, `/demo`, `/privacy`, and `/terms`. | `sitemap lists only canonical indexable routes`; `.factory/evidence/polish-4-live/route-link-audit.json` and `.factory/evidence/polish-4-live/welcome-mobile.png`; live `/sitemap.xml`. |
 | F-4-1 | Added `photo-source-limit` to `.factory/claims.json`. Its demo test rejects 10,000,001 bytes with the promised error and no receipt/reminder write, then accepts a valid image padded to exactly 10,000,000 bytes and saves one receipt. The source limit is a shared constant. | `@claim:photo-source-limit` passed independently in both clean-clone projects and in the live suite; `.factory/evidence/polish-4-live/photo-limit-error-mobile.png`; live `/?demo=1` service form. |
 
 ## Verification
