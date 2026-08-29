@@ -1,0 +1,108 @@
+{
+  "checkedAt": "2026-08-29T02:18:18.356Z",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Bike Service Receipts — log service and costs",
+      "h1": [
+        "Log bike service and costs"
+      ],
+      "main": true,
+      "description": "For cyclists who want each bike’s service history and next reminder in one place.",
+      "canonical": "https://bike-service-receipts.sociobot.in/",
+      "ogTitle": "Bike Service Receipts — log service and costs",
+      "twitterCard": "summary_large_image",
+      "consoleErrors": [],
+      "expectedNavigationError": []
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "title": "Demo — Bike Service Receipts",
+      "h1": [
+        "Sample bike service log"
+      ],
+      "main": true,
+      "description": "Try a separate sample bike service log. Reset it at any time.",
+      "canonical": "https://bike-service-receipts.sociobot.in/demo",
+      "ogTitle": "Demo — Bike Service Receipts",
+      "twitterCard": "summary_large_image",
+      "consoleErrors": [],
+      "expectedNavigationError": []
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "title": "Privacy — Bike Service Receipts",
+      "h1": [
+        "Privacy, kept local"
+      ],
+      "main": true,
+      "description": "How Bike Service Receipts stores local records and verifies an optional license.",
+      "canonical": "https://bike-service-receipts.sociobot.in/privacy",
+      "ogTitle": "Privacy — Bike Service Receipts",
+      "twitterCard": "summary_large_image",
+      "consoleErrors": [],
+      "expectedNavigationError": []
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "title": "Terms — Bike Service Receipts",
+      "h1": [
+        "Terms for the service log"
+      ],
+      "main": true,
+      "description": "Terms for using Bike Service Receipts and its one-time Plus license.",
+      "canonical": "https://bike-service-receipts.sociobot.in/terms",
+      "ogTitle": "Terms — Bike Service Receipts",
+      "twitterCard": "summary_large_image",
+      "consoleErrors": [],
+      "expectedNavigationError": []
+    },
+    {
+      "path": "/not-a-real-route",
+      "status": 404,
+      "title": "Page not found — Bike Service Receipts",
+      "h1": [
+        "Bike service page not found"
+      ],
+      "main": true,
+      "description": "This Bike Service Receipts page does not exist. Return to the service log.",
+      "canonical": "https://bike-service-receipts.sociobot.in/404",
+      "ogTitle": "Page not found — Bike Service Receipts",
+      "twitterCard": "summary_large_image",
+      "consoleErrors": [],
+      "expectedNavigationError": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "url": "https://bike-service-receipts.sociobot.in/",
+      "status": 200
+    },
+    {
+      "url": "https://bike-service-receipts.sociobot.in/?demo=1",
+      "status": 200
+    },
+    {
+      "url": "https://bike-service-receipts.sociobot.in/demo",
+      "status": 200
+    },
+    {
+      "url": "https://bike-service-receipts.sociobot.in/privacy",
+      "status": 200
+    },
+    {
+      "url": "https://bike-service-receipts.sociobot.in/terms",
+      "status": 200
+    },
+    {
+      "url": "https://hello-factory.sociobot.in/",
+      "status": 200
+    }
+  ]
+}

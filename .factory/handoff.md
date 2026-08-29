@@ -1,93 +1,95 @@
-# Bike Service Receipts — review 4 handoff
+# Bike Service Receipts — polish round 4 handoff
 
-Work order: `bike-service-receipts-review-4`
-Role: reviewer
+Work order: `bike-service-receipts-polish-4`
+Role: repair
 Live URL: <https://bike-service-receipts.sociobot.in>
+Implementation commit: `b745551`
+Deployment: `06e33265-c73f-4b4b-bec2-7e8cd9a76f4c`
 
 ## Completed
 
-- Conducted a fresh cold mobile/desktop review and wrote `.factory/review-4.md`.
-- Read the brief, visual thesis, demo and claim contracts, every earlier review,
-  polish report, verification report, and prior handoff. No product code was
-  changed in this work order.
-- Closed every finding from review rounds 1–3. The detailed finding-by-finding
-  mapping is in `.factory/polish-3.md`.
-- Made demo license returns safe: `?demo=1&license=...` strips the parameter
-  and cannot write real local/session storage or the real IndexedDB namespace.
-- Added the real Sociobot license-destination claim test and removed unsupported
-  billing, merchant, refund, and revocation promises while purchases are closed.
-- Completed the landing flow with a sample receipt, workflow, limitations, and
-  exact free/Plus pricing; updated the price fact, README heading, demo wording,
-  404 copy, sitemap, service-worker version, catalog sentence, and copy audit.
-- Preserved the botanical field-guide visual system and original art.
+- Closed review-4 finding F-4-1 with a dedicated `photo-source-limit` claim.
+  The browser test rejects a 10,000,001-byte image without writing a receipt
+  or reminder, then accepts a valid image at exactly 10,000,000 bytes.
+- Re-audited and retained every repair from reviews 1–3: complete import
+  validation and recovery, the isolated seeded demo, all claim tests,
+  first-screen copy, complete landing sequence, route focus, metadata, legal
+  routes, static 404, mobile layout, security headers, and offline behavior.
+- Updated the runtime/static build labels and service-worker cache to
+  `polish-4` so installed clients receive the repaired artifact.
+- Updated the README, copy audit, and 84-character verb-first catalog sentence.
+- Preserved the botanical field-guide palette, typography, paper texture,
+  receipt layout, original illustration, interaction grammar, and offline PWA
+  deployment class.
+- Wrote the finding-by-finding closure and evidence map in
+  `.factory/polish-4.md`.
 
-## Verification
-
-Review 4 clean clone at `9572a3c2ebcd5f69d12888ffcd1cf1fc90ca7293`:
-
-- `npm ci` completed with zero vulnerabilities; `npm test` passed 8/8; and
-  `npm run build` created `dist/`.
-- All 11 exact claim-manifest commands passed independently in desktop
-  Chromium and Pixel 5 projects.
-- `BASE_URL=https://bike-service-receipts.sociobot.in npx playwright test
-  --workers=2` passed 34/34.
-- Fresh demo request logging found only same-origin requests. The demo
-  license-return URL used only `demo:` local storage/IndexedDB, and Reset kept
-  that isolation. Valid routes and all discovered links returned 200; an
-  unknown route returned the designed static 404 with HTTP 404.
-
-Fresh clone `/tmp/bike-service-receipts-clean-final-13Uo2r` at `32a2fd1`:
+## How to run
 
 ```sh
-npm ci                         # 0 vulnerabilities
-npm test                       # 8 passed
-npm run build                  # dist/index.html created
-# each exact command in .factory/claims.json
-npx playwright test --workers=2 # 34 passed
+npm ci
+npm test
+npm run build
+npm run test:e2e
+npm run preview
 ```
 
-All 11 claim commands passed independently in both Chromium desktop and Pixel
-5 projects: demo isolation, service records, reminders, exports, backup
-restore, offline reload, local privacy, Plus, free tier, license destination,
-and accessible layout. The full clean-clone browser suite passed 34/34.
+Each exact claim command is in `.factory/claims.json`. The direct demo URL is
+<https://bike-service-receipts.sociobot.in/?demo=1>.
 
-Production checks after deploy:
+## Verification evidence
 
-- `BASE_URL=https://bike-service-receipts.sociobot.in npx playwright test --workers=2`: 34/34 passed.
-- `/opt/fleet/lib/verify-url.sh`: no console/page errors; title, language, one
-  H1, main landmark, image alts, and button names passed. Evidence:
-  `.factory/evidence/polish-3-live/verify.json`.
-- Playwright Axe integration found no serious or critical findings across root,
-  demo, privacy, and 404 in both browser projects.
-- Offline test reloaded the controlled demo and saved a receipt after the first
-  visit. Privacy test recorded no cross-origin request while saving demo data.
-  License test intercepted a recorded valid response and asserted the only
-  credential request was the Sociobot verification URL.
-- Live 404: HTTP 404 with the static error title, canonical, H1, and return
-  action before JavaScript. Screenshot:
-  `.factory/evidence/polish-3-live/not-found-desktop.png`.
-- Live headers: root has CSP, Permissions-Policy, Referrer-Policy, nosniff, and
-  frame restriction. `/assets/index-CimKnQkY.js` has one-year immutable cache.
-- Lighthouse mobile run: Performance 100, Accessibility 100, Best Practices
-  100, SEO 100; LCP 997 ms, CLS 0, TBT 0. Evidence:
-  `.factory/evidence/lighthouse-live-polish-3.json`.
-- Build budget: JS 56.25 KB raw / 17.75 KB gzip; CSS 25.82 KB raw / 6.27 KB
-  gzip; mobile AVIF hero 29 KB.
+Clean clone `/tmp/bike-polish4-clean-0YPwmE` at `b745551`:
 
-## Evidence
+- `npm ci`: 60 packages audited, zero vulnerabilities.
+- `npm test`: 8/8 unit tests passed.
+- `npm run build`: passed; `dist/index.html` exists.
+- All 12 exact claim commands: 2/2 each, one desktop and one Pixel 5 run.
+- Full Playwright suite: 36/36 passed.
 
-- Landing cold mobile: `.factory/evidence/polish-3-live/welcome-mobile.png`
-- Demo with discarded license parameter: `.factory/evidence/polish-3-live/demo-isolated-mobile.png`
-- Privacy and Terms: `.factory/evidence/polish-3-live/privacy-desktop.png`,
-  `.factory/evidence/polish-3-live/terms-desktop.png`
-- Static 404 body: `.factory/evidence/polish-3-live/unknown.html`
-- Production sitemap: `.factory/evidence/polish-3-live/sitemap.xml`
+Production after deployment:
 
-## Known gaps
+- Full Playwright suite: 36/36 passed against the live HTTPS URL.
+- Demo isolation: real local/session keys and IndexedDB survived a demo
+  credential URL, edit, reset, and exit unchanged.
+- Privacy: a demo save used only `demo:bike-service-receipts` and made no
+  cross-origin request.
+- Offline: the controlled demo reloaded and saved a receipt without a
+  connection after its first visit.
+- Accessibility: Playwright Axe found no serious/critical issue across root,
+  demo, Privacy, and 404 in desktop and mobile projects. Reduced motion,
+  keyboard focus, 390 px overflow, labels, landmarks, headings, and alts pass.
+- URL verifier: zero console/page errors, `lang=en`, one H1, one main, zero
+  missing alts, zero unlabeled buttons. See
+  `.factory/evidence/polish-4-live/verify.json`.
+- Routes and links: root, demo, Privacy, and Terms return 200 with distinct
+  titles/metadata and no console errors; every discovered link returns 200.
+  The unknown path returns the complete static 404 document. See
+  `.factory/evidence/polish-4-live/route-link-audit.json`.
+- Live asset integrity: `index-DcZof83_.js` matches local and production
+  SHA-256 `0d4034ad71d26d9168c131e86814f4f6146a37afa72934bf3d5f55614ae0ec02`.
+- Headers: root sends CSP, Permissions-Policy, Referrer-Policy, nosniff, and
+  frame protection; hashed assets use one-year immutable caching. See
+  `root-headers.txt` and `asset-headers.txt` in the live evidence directory.
+- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 1.0 s, LCP 1.2 s, TBT 60 ms, CLS 0, 66 KiB transferred. See
+  `.factory/evidence/lighthouse-live-polish-4.json`.
+- Budgets: JavaScript 56,259 bytes raw / 17,638 gzip; CSS 25,817 bytes raw /
+  6,284 gzip; mobile AVIF hero 29,229 bytes.
 
-Review 4 is **FAIL** on F-4-1: the visible photo help says **“Maximum source
-size 10 MB”**, but this quantitative promise has no `.factory/claims.json`
-entry or boundary test. Add and pass the specified `photo-source-limit` test,
-or remove the numerical promise, before a PASS review. Purchases remain
-deliberately closed; the UI and legal copy say so while existing Sociobot
-licenses remain restorable.
+Key screenshots:
+
+- Cold mobile landing: `.factory/evidence/polish-4-live/welcome-mobile.png`
+- Isolated demo: `.factory/evidence/polish-4-live/demo-isolated-mobile.png`
+- Photo limit error: `.factory/evidence/polish-4-live/photo-limit-error-mobile.png`
+- Import recovery: `.factory/evidence/polish-4-live/recovery-mobile.png`
+- Privacy and Terms: `.factory/evidence/polish-4-live/privacy-desktop.png` and
+  `.factory/evidence/polish-4-live/terms-desktop.png`
+- Static 404: `.factory/evidence/polish-4-live/not-found-desktop.png`
+
+## Known gaps and next steps
+
+No acceptance, functional, accessibility, privacy, offline, or deployment gap
+remains. Purchases are intentionally closed and the UI states this. If sales
+open later, register the product through Sociobot and add claim tests for the
+live checkout contract before changing that copy.
